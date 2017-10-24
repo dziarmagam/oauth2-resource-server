@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,8 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class OAuth2Filter implements Filter {
@@ -49,7 +52,7 @@ public class OAuth2Filter implements Filter {
             HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
             String authentication = httpServletRequest.getHeader("Authorization");
             try{
-                DecodedJWT jwt = jwtVerifier.verify(authentication);
+                DecodedJWT jwt = jwtVerifier.verify(authentication.split(" ")[1]);
                 checkPermissions(jwt, httpServletRequest.getPathInfo());
                 filterChain.doFilter(servletRequest, servletResponse);
             } catch (Exception e){
@@ -60,7 +63,11 @@ public class OAuth2Filter implements Filter {
     }
 
     private void checkPermissions(DecodedJWT jwt, String pathInfo) {
-
+        List<String> roles = (List<String>) jwt.getClaim("realm_access")
+                .asMap()
+                .get("roles");
+//        if(!roles.contains(split))
+        jwt.getClaims().entrySet().forEach(System.out::println);
     }
 
     @Override

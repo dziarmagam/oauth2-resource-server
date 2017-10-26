@@ -15,12 +15,12 @@ public class OwnerResource {
     OwnerService ownerService;
 
     @RequestMapping("/owners/{id}")
-    public Owner getCar(@PathVariable("id") int id) {
+    public Owner getOwner(@PathVariable("id") int id) {
         return ownerService.getOwner(id);
     }
 
     @RequestMapping("/owners")
-    public List<Owner> getCars() {
+    public List<Owner> getOwners() {
         return ownerService.getOwners();
     }
 }

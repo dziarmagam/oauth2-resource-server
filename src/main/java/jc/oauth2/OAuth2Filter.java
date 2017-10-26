@@ -22,8 +22,11 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class OAuth2Filter implements Filter {
@@ -53,8 +56,15 @@ public class OAuth2Filter implements Filter {
             String authentication = httpServletRequest.getHeader("Authorization");
             try{
                 DecodedJWT jwt = jwtVerifier.verify(authentication.split(" ")[1]);
-                checkPermissions(jwt, httpServletRequest.getPathInfo());
-                filterChain.doFilter(servletRequest, servletResponse);
+                List<String> permissionsNeeded = permissionsNeeded(httpServletRequest.getRequestURI());
+                List<String> missingPermission =
+                        checkForMissingPermission(jwt, permissionsNeeded);
+                if(missingPermission.isEmpty()){
+                    filterChain.doFilter(servletRequest, servletResponse);
+                }else{
+                    httpServletResponse.sendError(HttpStatus.UNAUTHORIZED.value(),
+                            "Missing " + missingPermission + " scope");
+                }
             } catch (Exception e){
                 e.printStackTrace();
                 httpServletResponse.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -62,12 +72,28 @@ public class OAuth2Filter implements Filter {
         }
     }
 
-    private void checkPermissions(DecodedJWT jwt, String pathInfo) {
-        List<String> roles = (List<String>) jwt.getClaim("realm_access")
+    private List<String> checkForMissingPermission(DecodedJWT jwt, List<String> requiredPermissions) {
+        List<String> permissions = (List<String>) jwt.getClaim("realm_access")
                 .asMap()
                 .get("roles");
-//        if(!roles.contains(split))
-        jwt.getClaims().entrySet().forEach(System.out::println);
+        if(!permissions.containsAll(requiredPermissions)){
+            return requiredPermissions
+                    .stream()
+                    .filter(perm -> !permissions.contains(perm))
+                    .collect(Collectors.toList());
+        }else{
+            return Collections.emptyList();
+        }
+    }
+
+    private List<String> permissionsNeeded(String path){
+        if(path.contains("cars")){
+            return Collections.singletonList("cars");
+        }else if (path.contains("owners")){
+            return Collections.singletonList("owners");
+        }else{
+            return Collections.emptyList();
+        }
     }
 
     @Override

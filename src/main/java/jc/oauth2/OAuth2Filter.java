@@ -44,6 +44,7 @@ public class OAuth2Filter implements Filter {
     private JWTVerifier createJWTVerifier(String base64RSAPublicKey) {
         RSAPublicKey rsaPublicKey = createRSAPublicKey(base64RSAPublicKey);
         Algorithm algorithm = Algorithm.RSA256(rsaPublicKey, null);
+
         return JWT.require(algorithm)
                 .build();
     }

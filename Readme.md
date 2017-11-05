@@ -12,6 +12,11 @@ Users cannot be exported so they need to be added manually. Remember to add perm
 
 It is recommended to regenerate client secret.
 
+####Note
+
+This example contain minimal amount of additional frameworks and API in order
+to keep the code as simple as possible and demonstrate how HTTP communications looks like in OAuth2.
+
 ##Configuration description:
-1. oauth2.rsa.public.key.base64 - RSA256 public key encoded in base64.
+    oauth2.rsa.public.key.base64 - RSA256 public key encoded in base64.
 
